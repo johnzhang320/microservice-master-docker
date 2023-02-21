@@ -37,7 +37,7 @@ SpringBoot microservice
   
 ## Installation and Setup
   
-### Mongodb Authentication and Configuration
+### Mongodb Authentication
    
    1. Using mongodb download and install tool to initialize such as install to mac
    
@@ -68,7 +68,7 @@ SpringBoot microservice
               ]
      })
    
-   Ctrl-C quit mongodb and then type following common, 
+   Ctrl-C quit mongodb, using pgrep mongo and kill command stop mongod and then type following common, 
    
    start mongod as authentication access
    
@@ -95,7 +95,18 @@ SpringBoot microservice
          roles: [ { role: "readWrite", db: "product_services" } ]
        })
    
-
+### Mongodb Configuration in application.yml
+    spring:
+      data:
+        mongodb:
+          host: localhost
+          port: 27017
+          database: product_services
+          username: productsuper
+          password: super123
+          repositories:
+            enabled: true
+   
  
       
         
