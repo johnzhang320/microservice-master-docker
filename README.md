@@ -19,7 +19,11 @@ SpringBoot microservice
   
   Spring Cloud API Getway
   
-  Confluent Kafka
+  kafka 3.4.0 or Confluent Kafka 
+     
+  Mongodb 4.4.18
+  
+  MySQL 8.0.28
   
   JDK 1.8 
   
@@ -37,7 +41,6 @@ SpringBoot microservice
   
   Docker
   
- 
   
 ## Microservices and applied technologies
 
@@ -47,7 +50,7 @@ SpringBoot microservice
   
   eureka-client-api-getway ---- supported by spring-cloud-starter-gateway to route to services, new replace of zuul
   
-  OPEN FEIGN  ---- defining feign client interfaces to have services call other other, rew replace of Webclient of web-flux
+  OPEN FEIGN ---- feign client interfaces to have services communicate other other, rew replace of Webclient of web-flux
   
   RESILIENCE4J ---- circuit breaker and fallback support, new replace of hystrix
   
@@ -179,6 +182,31 @@ SpringBoot microservice
      
      I got the folder $KAFKA_HOME/shell_script to path of .bash_profile as well
      
+     ## start zookeeper and kafka in OS
+     in $KAFKA_HOME/config
+     
+     zookeeper.properties contains property is  dataDir = /tmp/zookeeper 
+     
+     server.properties contains property is log.dir = /tmp/kafka-logs
+     
+     To start kafka, when you got snapshot trouble,  make sure two folders empty
+     
+     ~$ cd $KAFKA_HOME/bin
+     
+     ~$ ./zookeeper-server-start.sh ../config/zookeeper.properties
+     
+     ~$ ./kafka-server-start.sh ../config/server.properties
+     
+     ~$ jps 
+     
+    
+       44468 Kafka
+       40212 QuorumPeerMain
+ 
+      
+     
+     
+     
      here is my shell script which is not confluent kafka if you test in your local machine no more one broker , partition and replica , one consumer
      
      create_topic.sh
@@ -223,7 +251,22 @@ SpringBoot microservice
               KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
               KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
      
-     
+ ## start docker kafka
+ 
+    in microservice-master project and open terminal from Intellij
+    
+    docker ps
+    if find kafka and zookeeper process running in docker, using
+    
+    docker kill pid
+    
+    to stop two of them
+    
+    then start it
+    
+    docker compose up -d
+    
+    
      
      
      
