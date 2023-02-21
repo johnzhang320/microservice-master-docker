@@ -1,0 +1,5 @@
+/Users/jianzhang/Microservice/gabage_can/microservice-parent/inventory-service/src/main/java/com/microservice/inventory/InventoryServiceApplication.java
+/Users/jianzhang/Microservice/gabage_can/microservice-parent/inventory-service/src/main/java/com/microservice/inventory/controller/InventoryController.java
+/Users/jianzhang/Microservice/gabage_can/microservice-parent/inventory-service/src/main/java/com/microservice/inventory/model/Inventory.java
+/Users/jianzhang/Microservice/gabage_can/microservice-parent/inventory-service/src/main/java/com/microservice/inventory/repository/InventoryRepository.java
+/Users/jianzhang/Microservice/gabage_can/microservice-parent/inventory-service/src/main/java/com/microservice/inventory/service/InventoryService.java

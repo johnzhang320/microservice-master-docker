@@ -1,0 +1,79 @@
+server:
+  port: 8081
+  servlet:
+    context-path: /orders
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/order_services
+    username: root
+    password: mypassword
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+    hibernate:
+      ddl-auto: update
+    generate-ddl: true
+    show-sql: true
+  application:
+    name: order-services
+management:
+  health:
+    circuitbreakers:
+      enabled: true
+  endpoints:
+    health.show-details: always
+
+#Resilience4J properties
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      slidingWindowSize: 100
+      permittedNumberOfCallsInHalfOpenState: 10
+      waitDurationInOpenState: 5000
+      failureRateThreshold: 60
+      eventConsumerBufferSize: 10
+      registerHealthIndicator: true
+      automaticTransitionFromOpenToHalfOpenEnabled: true
+    someShared:
+      slidingWindowSize: 50
+      permittedNumberOfCallsInHalfOpenState: 10
+  instances:
+    inventory:
+      baseConfig: default
+      waitDurationInOpenState: 5000
+    order:
+      baseConfig: default
+
+resilience4j:
+  timeLimiter:
+    instances:
+      inventory:
+        timeout-duration: 3000
+        max-attempts: 3
+
+
+
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+        loggerLevel: basic
+
+kafka:
+  bootstrapServer: localhost:9092
+
+
+
+
+
+
+
