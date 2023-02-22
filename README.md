@@ -49,7 +49,7 @@ SpringBoot microservice
 
   eureka-name-server ---- register, discovery and load balance for all microservices
   
-  eureka-client-api-getway ---- supported by spring-cloud-starter-gateway to route to services, new replace of zuul
+  eureka-client-api-gateway---- supported by spring-cloud-starter-gateway to route to services, new replace of zuul
   
   OPEN FEIGN ---- feign client interfaces to have services communicate other other, rew replace of Webclient of web-flux
   
@@ -285,20 +285,20 @@ SpringBoot microservice
   ![](images/five-services-in-eureka.png)
   
 
-  2. product-service -- API Get Way
+  2. product-service -- API Gate Way shows
      
-  As below image shows product-service port is 8091 but in postman we use api-getway to route to each service, therefore we do not need to 
+  As below image shows product-service port is 8091 but in postman we use api-gateway to route to each service, therefore we do not need to 
   remember each service port number because real world the port number and ip address could be change
   we can copy paste the productId for following operation
     
     
-  ![](images/create-product-using-api-getway-port-8000.png)
+  ![](images/create-product-using-api-gateway-port-8000.png)
   
-  Api-getway route 
+  Api-Gateway route 
   ...
   
          @Bean
-         public RouteLocator getwayRouter(RouteLocatorBuilder builder) {
+         public RouteLocator gatewayRouter(RouteLocatorBuilder builder) {
             return builder.routes()
                   .route(p->p.path("/get")
                           .uri("http://httpbin.org"))
