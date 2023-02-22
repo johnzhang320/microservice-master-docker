@@ -7,14 +7,14 @@ import com.microservice.inventory.dto.ProductSearchDto;
 import com.microservice.inventory.exception.InventoryException;
 
 import com.microservice.inventory.feignclient.ProductProxy;
-import com.microservice.inventory.model.Inventory;
 import com.microservice.inventory.service.InventoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
 
-import javax.websocket.server.PathParam;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RestController;
+
 import java.util.List;
 
 @RestController
@@ -52,7 +52,7 @@ public class InventoryController {
     @GetMapping("/inputByProdIdAndQty/{productId}")
     @ResponseStatus(HttpStatus.CREATED)
     public InventoryResponseDto inputInventoryByProductId(@PathVariable("productId") String productId,
-                                               @PathParam("quantity") Integer quantity)  {
+                                               @RequestParam("quantity") Integer quantity)  {
 
 
         return inventoryService.inputInventoryByProductId(productId,quantity);
@@ -93,13 +93,22 @@ public class InventoryController {
     {
        return inventoryService.findInventoryByProductId(productId);
     }
+
+    /**
+     * @RequestParam ---- Springboot recognize in Feign
+     * @PathParam    ---- Javax , feign can not recognize it
+     * @param id
+     * @param quantity
+     * @return
+     */
     @PutMapping("/updateQuantity/{id}")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public InventoryResponseDto updateInventory(@PathVariable("id") Long id,
-                                              @PathParam("quantity") Integer quantity) {
+                                                @RequestParam("quantity") Integer quantity) {
+        log.info("quantity="+quantity);
         return inventoryService.updateInventoryByProductId(id,quantity);
-
     }
+
 
     /**
      *  avoid input product name in URL

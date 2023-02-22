@@ -125,7 +125,9 @@ public class InventoryService {
 
     private InventoryResponseDto toResponseDto(Inventory inventory,boolean deliver) {
         InventoryResponseDto inventoryResponseDto = modelMapper.map(inventory, InventoryResponseDto.class);
-        if (deliver) {
+        // missed quantity by modelMapper
+        inventoryResponseDto.setQuantity(inventory.getQuantity());
+     if (deliver) {
             inventoryResponseDto.setDeliverDateTime(LocalDateTime.now());
         } else {
             inventoryResponseDto.setInputDateTime(LocalDateTime.now());

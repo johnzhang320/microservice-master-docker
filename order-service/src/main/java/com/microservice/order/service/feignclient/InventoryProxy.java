@@ -11,55 +11,55 @@ import org.springframework.web.bind.annotation.*;
 import javax.websocket.server.PathParam;
 import java.util.List;
 
-@FeignClient(name="inventory-services")
+@FeignClient(name="inventory-services", path="/inventorys")
 public interface InventoryProxy {
-    @GetMapping("/inventorys/findBySkuCode/{sku-code}")
+    @GetMapping("/findBySkuCode/{sku-code}")
     @ResponseStatus(HttpStatus.OK)
     public boolean isInStock(@PathVariable("sku-code") String skuCode);
 
-    @GetMapping("/inventorys/findById/{id}")
+    @GetMapping("/findById/{id}")
     @ResponseStatus(HttpStatus.OK)
     public InventoryResponseDto findInventoryById(@PathVariable("id") Long id) ;
 
-    @GetMapping("/inventorys/findAll")
+    @GetMapping("/findAll")
     @ResponseStatus(HttpStatus.OK)
     public List<InventoryResponseDto> findAllInventorys() ;
 
-    @PostMapping("/inventorys/input")
+    @PostMapping("/input")
     @ResponseStatus(HttpStatus.CREATED)
     public InventoryResponseDto inputInventory(@RequestBody InventoryRequestDto inventoryRequestDto);
 
-    @GetMapping("/inventorys/inputByProdIdAndQty/{productId}")
+    @GetMapping("/inputByProdIdAndQty/{productId}")
     @ResponseStatus(HttpStatus.CREATED)
     public InventoryResponseDto inputInventoryByProductId(@PathVariable("productId") String productId,
-                                                          @PathParam("quantity") Integer quantity);
+                                                          @RequestParam("quantity") Integer quantity);
 
-    @PostMapping("/inventorys/inputInventoryByProductSearchDto/{quantity}")
+    @PostMapping("/inputInventoryByProductSearchDto/{quantity}")
     @ResponseStatus(HttpStatus.CREATED)
     public InventoryResponseDto inputInventoryByProductSearchDto(@RequestBody ProductSearchDto productSearchDto,
                                                                  @PathVariable("quantity") Integer quantity
     ) ;
 
-    @GetMapping("/inventorys/findProdFromProductdb/{productId}")
+    @GetMapping("/findProdFromProductdb/{productId}")
     @ResponseStatus(HttpStatus.OK)
     public ProductResponseDto findProdFromProductdb(@PathVariable("productId") String productId);
-    @GetMapping("/inventorys/findProdFromInventorydbTimeout/{productId}")
+    @GetMapping("/findProdFromInventorydbTimeout/{productId}")
     @ResponseStatus(HttpStatus.OK)
     public InventoryResponseDto findProdFromInventorydbTimeout(@PathVariable("productId") String productId);
-    @GetMapping("/inventorys/findProdFromInventorydb/{productId}")
+    @GetMapping("/findProdFromInventorydb/{productId}")
     @ResponseStatus(HttpStatus.OK)
     public InventoryResponseDto findProdFromInventorydb(@PathVariable("productId") String productId);
-    @PutMapping("/inventorys/updateQuantity/{id}")
+    @PutMapping("/updateQuantity/{id}/{quantity}")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public InventoryResponseDto updateInventory(@PathVariable("id") Long id,
-                                                @PathParam("quantity") Integer quantity);
+                                                @RequestParam("quantity") Integer quantity);
 
     /**
      *  avoid input product name in URL
      * @param inventoryRequestDto
      * @return
      */
-    @PostMapping("/inventorys/findInventoryByReqDto")
+    @PostMapping("/findInventoryByReqDto")
     @ResponseStatus(HttpStatus.OK)
     public InventoryResponseDto findInventoryByName(@RequestBody InventoryRequestDto inventoryRequestDto) ;
 

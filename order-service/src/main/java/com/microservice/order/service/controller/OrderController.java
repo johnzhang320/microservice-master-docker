@@ -4,22 +4,17 @@ import com.microservice.order.service.dto.OrderRequestDto;
 import com.microservice.order.service.dto.OrderResponseDto;
 import com.microservice.order.service.exception.OrderException;
 import com.microservice.order.service.model.Order;
-import com.microservice.order.service.model.OrderEvent;
 import com.microservice.order.service.repository.OrderRepository;
 import com.microservice.order.service.service.OrderService;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.aspectj.weaver.ast.Or;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
-
-import javax.persistence.GeneratedValue;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -46,28 +41,39 @@ public class OrderController {
      * @param orderRequestDto
      * @return
      */
+/*
+    @PostMapping("/placeOrderTimeout")
+    @ResponseStatus(HttpStatus.CREATED)
+    @CircuitBreaker(name="inventory",fallbackMethod = "fallbackMethod")
+    //@Retry(name ="inventory")
+    public CompletableFuture<String> placeOrderTimeout(@RequestBody OrderRequestDto orderRequestDto) {
+        log.info("OrderRequestDto:"+orderRequestDto.toString());
+        Order order = new Order();
+        return CompletableFuture.supplyAsync(()->orderService.placeOrderTimeout(orderRequestDto));
+    }
+    public CompletableFuture<String> fallbackMethod(OrderRequestDto orderRequestDto, OrderException ex) {
+        return CompletableFuture.supplyAsync(()->"Oops, Something went wrog , please wait for a moment1");
+    }*/
 
     @PostMapping("/placeOrderTimeout")
     @ResponseStatus(HttpStatus.CREATED)
     @CircuitBreaker(name="inventory",fallbackMethod = "fallbackMethod")
     @Retry(name ="inventory")
-    public CompletableFuture<String> placeOrderTimeout(@RequestBody OrderRequestDto orderRequestDto) {
+    public ResponseEntity placeOrderTimeout(@RequestBody OrderRequestDto orderRequestDto) {
         log.info("OrderRequestDto:"+orderRequestDto.toString());
-        Order order = new Order();
-        return CompletableFuture.supplyAsync(()->orderService.placeOrder(orderRequestDto,order, true));
+        Order order = orderService.placeOrder(orderRequestDto, true);
+        return ResponseEntity.ok(order);
+    }
+    public String fallbackMethod(OrderRequestDto orderRequestDto, OrderException ex) {
+        return "Oops, Something went wrong , please wait for a moment !";
     }
 
     @PostMapping("/placeOrder")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity placeOrder(@RequestBody OrderRequestDto orderRequestDto) {
         log.info("OrderRequestDto:"+orderRequestDto.toString());
-        Order order = new Order();
-        orderService.placeOrder(orderRequestDto, order, false);
+        Order order =orderService.placeOrder(orderRequestDto,false);
         return ResponseEntity.ok(order);
-
-    }
-    public CompletableFuture<String> fallbackMethod(OrderRequestDto orderRequestDto, OrderException ex) {
-        return CompletableFuture.supplyAsync(()->"Oops, Something went wrog , please wait for a moment1");
     }
 
     @GetMapping("/findAll")
