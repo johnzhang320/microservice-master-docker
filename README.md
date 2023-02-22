@@ -274,9 +274,9 @@ SpringBoot microservice
    
 ## Code Integrated testing
 
-###  1. Five services have been registered in eureka server, http:/localhost:8761
+### 1. Five services have been registered in eureka server, http:/localhost:8761
 
-  in Server,  @EnableEurekaServer and avoid itself as Eureka Client, server.port=8761
+    In Server,  @EnableEurekaServer and avoid itself as Eureka Client, server.port=8761
   
   in Clients, @EnableEurekaClient and reqister eureka.client.serviceUrl.default-zone=http://localhost:8761/eureka in application.yml
  
@@ -334,9 +334,35 @@ SpringBoot microservice
     before place order, check inventory productId by feign interface, post body only provide productId, quantity and final price, productName
     description, skucode provided by inventory
     
-    ![](images/place-an-order-succeed-by-productId.png)        
+  ![](images/place-an-order-succeed-by-productId.png)        
     
-### 5.    
+### 5. Kafka Event Driven 
+   When placing  order, order-service as producer send an order-event object to notification-service as consumer. in producer side we configure
+   producer to serialize a key as string and a value as order-event json object
+   
+...
+
+
+    @Configuration
+    @EnableKafka
+    public class KafkaProducerConfigure {
+        @Bean
+        public KafkaTemplate<String, OrderEvent> kafkaTemplate() {
+            return new KafkaTemplate<>(orderProducerFactory());
+
+        }
+        @Value("${kafka.bootstrapServer}")
+        private String bootStrapServer;
+        @Bean
+        public ProducerFactory<String, OrderEvent> orderProducerFactory() {
+            Map<String, Object> config=new HashMap<>();
+            config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,bootStrapServer);
+            config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+            config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+            return new DefaultKafkaProducerFactory<>(config);
+        }
+    }
+...
    
      
    
