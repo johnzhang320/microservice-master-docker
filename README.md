@@ -330,7 +330,7 @@ SpringBoot microservice
   
   ![](images/use-productId-quantity-create-inventory.png)
   
-### 4. order-service --- check and update inventory
+### 4. order-service --- check inventory and place order
 
     before place order, check inventory productId by feign interface, post body only provide productId, quantity and final price, productName
     description, skucode provided by inventory, check if quantity is enough or not , otherwise throw OrderException
@@ -341,6 +341,7 @@ SpringBoot microservice
    When placing  order, order-service as producer send an order-event object to notification-service as consumer. in producer side we configure
    producer to serialize a key as string and a value as order-event json object
    
+### Producer Serialize Json Object OrderEvent and send to place-order-topic
 ...
 
 
@@ -359,18 +360,47 @@ SpringBoot microservice
             Map<String, Object> config=new HashMap<>();
             config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,bootStrapServer);
             config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-            config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+###            config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
             return new DefaultKafkaProducerFactory<>(config);
         }
     }
     
+    
+     private void sendOrderEvent(Order order) {
+        String orderNumber = order.getOrderNumber();
+        order.getOrderLineItemList().forEach(o->{
+            OrderEvent orderEvent = OrderEvent.builder()
+                    .orderNumber(orderNumber)
+                    .productName(o.getProductName())
+                    .description(o.getDescription())
+                    .quantity(o.getQuantity())
+                    .price(o.getPrice())
+                    .productId(o.getProductId())
+                    .skuCode(o.getSkuCode())
+                    .inventoryStatus(o.getInventoryStatus())
+                    .build();
+            // send notice to Notification-Service
+###         kafkaTemplate.send(PLACE_ORDER_TOPIC,orderEvent);
+        });
+    } 
+    
+...
+   
+   we can see in OS Level
+   
+   ![](images/kafka-console-consumer-command-see-place-order-event)
+   
+   We also can see in notification-service
+   
+   ![](images/kafka-consumer-listened-place-order-event.png)
+
+
+### 6. Open Feign Client Interface
+
+   When place an order, service code use feign interface directly call inventory-service  
+   
 ...
 
-### PlaceOrder code, we use feign interface directly call inventory-service two times 
-
-...
-
-  
       @FeignClient(name="inventory-services", path="/inventorys")
       public interface InventoryProxy {
           @GetMapping("/findBySkuCode/{sku-code}")
@@ -401,110 +431,187 @@ SpringBoot microservice
           ) ;
 
           @GetMapping("/findProdFromProductdb/{productId}")
-          @ResponseStatus(HttpStatus.OK)
           public ProductResponseDto findProdFromProductdb(@PathVariable("productId") String productId);
           
 
 ...
 
-### Place Order Service
+### 7. Place Order Service Code
     
 ...
    
+
     @Service
-    
+
     @RequiredArgsConstructor
-    
+
     @Transactional
-    
+
     @Slf4j
-    
-     public Order placeOrder(OrderRequestDto orderRequestDto, boolean timeout) {
-        Order order = new Order();
-        order.setOrderNumber(UUID.randomUUID().toString());
-        List<OrderLineItems> orderLineItemsList =orderRequestDto.getOrderLineItemsDtoList().stream()
-                .map(orderLineItemsDto -> {
-                    // determine if we can place this item, services communication by feign
-                    InventoryResponseDto inventoryResponseDto =timeout ?
-                            inventoryProxy.findProdFromInventorydb(orderLineItemsDto.getProductId()):
-                            inventoryProxy.findProdFromInventorydbTimeout(orderLineItemsDto.getProductId());
 
-                    if (inventoryResponseDto ==null ){
-                        throw new OrderException("There is no item: "+inventoryResponseDto.getProductName() +" in inventory ");
-                    } else {
-                        if (inventoryResponseDto.getQuantity() < orderLineItemsDto.getQuantity()) {
-                            throw new OrderException("Quantity of requested item: "+inventoryResponseDto.getProductName() 
-                            +" is not enough in inventory !");
+    public class OrderService {
+
+        private final ModelMapper modelMapper;
+
+        private final OrderRepository orderRepository;
+
+        private final InventoryProxy inventoryProxy;
+
+        private final KafkaTemplate<String, OrderEvent> kafkaTemplate;
+
+        private static final String PLACE_ORDER_TOPIC="place-order-topic";
+        public Order placeOrder(OrderRequestDto orderRequestDto, boolean timeout) {
+            Order order = new Order();
+            order.setOrderNumber(UUID.randomUUID().toString());
+            List<OrderLineItems> orderLineItemsList =orderRequestDto.getOrderLineItemsDtoList().stream()
+                    .map(orderLineItemsDto -> {
+                        // determine if we can place this item, services communication by feign
+                        if (orderLineItemsDto.getProductId()==null) {
+                            throw new OrderException("There is no requested productId !");
                         }
+                        if (orderLineItemsDto.getPrice()==null) {
+                            throw new OrderException("There is no requested price !");
+                        }
+                        if (orderLineItemsDto.getQuantity()==null || orderLineItemsDto.getQuantity()==0) {
+                            throw new OrderException("There is no requested quantity !");
+                        }
+                        InventoryResponseDto inventoryResponseDto = !timeout ?
+                                inventoryProxy.findProdFromInventorydb(orderLineItemsDto.getProductId()):
+                                inventoryProxy.findProdFromInventorydbTimeout(orderLineItemsDto.getProductId());
+
+                        if (inventoryResponseDto.getProductName() ==null ){
+                            throw new OrderException("There is no item: "+inventoryResponseDto.getProductName() +" in inventory ");
+                        } else {
+                            if (inventoryResponseDto.getQuantity()==0 || inventoryResponseDto.getQuantity()==null) {
+                                throw new OrderException("Quantity of requested item: "+inventoryResponseDto.getProductName() +" is zero in inventory ");
+                            }
+                            if (inventoryResponseDto.getQuantity() < orderLineItemsDto.getQuantity()) {
+                                throw new OrderException("Quantity of requested item: "+inventoryResponseDto.getProductName() +" 
+                                                is not enough in inventory !");
+                            }
+                        }
+                        OrderLineItems orderLineItems = builderOrderLineItems(orderLineItemsDto,inventoryResponseDto);
+
+                        return orderLineItems;
+                    }).collect(Collectors.toList());
+
+            // set requested order to be saved finally
+            order.setOrderLineItemList(orderLineItemsList);
+            // save order to order database
+            order =  orderRepository.save(order);
+            // send order event object to notification-service by KAFKA
+            sendOrderEvent(order);
+
+            return order;
+        }
+
+
+        public List<OrderResponseDto> getALLOrders() {
+            List<Order> orderList = orderRepository.findAll();
+            return orderList.stream().map(
+                    order -> {
+                        return modelMapper.map(order, OrderResponseDto.class);
                     }
-                    Integer orderQuantity = orderLineItemsDto.getQuantity();
-                    // queue will to do such subtract in inventory ,
-                    Integer inventoryRemainQuantity= inventoryResponseDto.getQuantity() - orderLineItemsDto.getQuantity();
+            ).collect(Collectors.toList());
+        }
 
-                    Long inventoryId =inventoryResponseDto.getId();
+        private OrderLineItems builderOrderLineItems(OrderLineItemsDto orderLineItemsDto,InventoryResponseDto inventoryResponseDto) {
+            return   OrderLineItems.builder()
+                    .productId(orderLineItemsDto.getProductId())
+                    .skuCode(inventoryResponseDto.getSkuCode())
+                    .productName(inventoryResponseDto.getProductName())
+                    .description(inventoryResponseDto.getDescription())
+                    .inventoryStatus("shipping")
+                    .price(orderLineItemsDto.getPrice())
+                    .quantity(orderLineItemsDto.getQuantity())
+                    .build(); //modelMapper.map(orderLineItemsDto,OrderLineItems.class);
+        }
 
-                    // reduce the quantity from inventory
-
-                    inventoryProxy.updateInventory(inventoryId,inventoryRemainQuantity);
-
-                    // inventory product information will be written to orderLineItemsDto
-                    OrderLineItems orderLineItems = builderOrderLineItems(orderLineItemsDto,inventoryResponseDto);
-
-                    return orderLineItems;
-                }).collect(Collectors.toList());
-
-        // set requested order to be saved finally
-        order.setOrderLineItemList(orderLineItemsList);
-        // save order to order database
-        order =  orderRepository.save(order);
-        // send order event object to notification-service by KAFKA
-        sendOrderEvent(order);
-        
-        return order;
-    }
-
-
-    public List<OrderResponseDto> getALLOrders() {
-        List<Order> orderList = orderRepository.findAll();
-        return orderList.stream().map(
-                order -> {
-                    return modelMapper.map(order, OrderResponseDto.class);
-                }
-        ).collect(Collectors.toList());
-    }
-
-    private OrderLineItems builderOrderLineItems(OrderLineItemsDto orderLineItemsDto,InventoryResponseDto inventoryResponseDto) {
-        return   OrderLineItems.builder()
-                .productId(orderLineItemsDto.getProductId())
-                .skuCode(inventoryResponseDto.getSkuCode())
-                .productName(inventoryResponseDto.getProductName())
-                .description(inventoryResponseDto.getDescription())
-                .inventoryStatus("shipping")
-                .price(orderLineItemsDto.getPrice())
-                .quantity(orderLineItemsDto.getQuantity())
-                .build(); //modelMapper.map(orderLineItemsDto,OrderLineItems.class);
-    }
-
-    private void sendOrderEvent(Order order) {
-        String orderNumber = order.getOrderNumber();
-        order.getOrderLineItemList().forEach(o->{
-            OrderEvent orderEvent = OrderEvent.builder()
-                    .orderNumber(orderNumber)
-                    .productName(o.getProductName())
-                    .description(o.getDescription())
-                    .quantity(o.getQuantity())
-                    .price(o.getPrice())
-                    .productId(o.getProductId())
-                    .skuCode(o.getSkuCode())
-                    .inventoryStatus(o.getInventoryStatus())
-                    .build();
-            // send notice to Notification-Service
-            kafkaTemplate.send(PLACE_ORDER_TOPIC,orderEvent);
-        });
-    }
+        private void sendOrderEvent(Order order) {
+            String orderNumber = order.getOrderNumber();
+            order.getOrderLineItemList().forEach(o->{
+                OrderEvent orderEvent = OrderEvent.builder()
+                        .orderNumber(orderNumber)
+                        .productName(o.getProductName())
+                        .description(o.getDescription())
+                        .quantity(o.getQuantity())
+                        .price(o.getPrice())
+                        .productId(o.getProductId())
+                        .skuCode(o.getSkuCode())
+                        .inventoryStatus(o.getInventoryStatus())
+                        .build();
+                // send notice to Notification-Service
+                kafkaTemplate.send(PLACE_ORDER_TOPIC,orderEvent);
+            });
+          }
+       }
      
 ...   
 
-## Request quantity exceeds the quantity of Inventory
+### Request quantity exceeds the quantity of Inventory
 
-![](images/)
+  ![](images/quantity-exceed-inventory.png)
+
+### 8. Resilience4J timeout and Retry
+ 
+   In application.yml of order-service we defined 5 seconds to timeout and retry 3 times , each time waiting 3 seconds
+   
+   ...
+   
+        #Resilience4J properties
+        resilience4j.circuitbreaker:
+          configs:
+            default:
+              slidingWindowSize: 100
+              permittedNumberOfCallsInHalfOpenState: 10
+              waitDurationInOpenState: 5000
+              failureRateThreshold: 60
+              eventConsumerBufferSize: 10
+              registerHealthIndicator: true
+              automaticTransitionFromOpenToHalfOpenEnabled: true
+            someShared:
+              slidingWindowSize: 50
+              permittedNumberOfCallsInHalfOpenState: 10
+          instances:
+            inventory:
+              baseConfig: default
+          waitDurationInOpenState: 5000
+            order:
+              baseConfig: default
+
+        resilience4j:
+          timeLimiter:
+            instances:
+              inventory:
+          timeout-duration: 3000
+            max-attempts: 3
+   
+   ...
+    
+    In Inventory code we elibrately set 10 seconds to daley
+    
+ ...
+ 
+     
+      @GetMapping("/findProdFromInventorydbTimeout/{productId}")
+      
+      @ResponseStatus(HttpStatus.OK)
+      
+      public InventoryResponseDto findProdFromInventorydbTimeout(@PathVariable("productId") String productId)
+      {
+          log.info("Wait for start input inventory");
+          try {
+             Thread.sleep(10000L);
+          } catch(InterruptedException e) {}
+
+          log.info("Waiting ended");
+
+          return inventoryService.findInventoryByProductId(productId);
+      }
+ 
+ ...
+
+  
+  
+  
+  
