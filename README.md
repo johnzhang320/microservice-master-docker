@@ -174,16 +174,17 @@ SpringBoot microservice
    
    order-services are similiar to inventory-services, no more description
    
-   ## Setup and configure Kafka producer/consumer 
+## Setup and configure Kafka producer/consumer 
    
-  1. Install kafka into Mac by download kafka_2.12-3.4.0.tgz from https://kafka.apache.org/downloads
+### 1. Install kafka into Mac by download kafka_2.12-3.4.0.tgz from https://kafka.apache.org/downloads
      
      change your .bash_profile , make sure $KAFKA_HOME in path
      
      I got the folder $KAFKA_HOME/shell_script to path of .bash_profile as well
      
-     ## start zookeeper and kafka in OS
-     in $KAFKA_HOME/config
+     start zookeeper and kafka in OS
+     
+     in $KAFKA_HOME/config, we can see
      
      zookeeper.properties contains property is  dataDir = /tmp/zookeeper 
      
@@ -191,44 +192,43 @@ SpringBoot microservice
      
      To start kafka, when you got snapshot trouble,  make sure two folders empty
      
-     ~$ cd $KAFKA_HOME/bin
+  ...     
+         ~$ cd $KAFKA_HOME/bin
      
-     ~$ ./zookeeper-server-start.sh ../config/zookeeper.properties
+         ~$ ./zookeeper-server-start.sh ../config/zookeeper.properties
      
-     ~$ ./kafka-server-start.sh ../config/server.properties
+         ~$ ./kafka-server-start.sh ../config/server.properties
      
-     ~$ jps 
-     
+         ~$ jps     
     
-       44468 Kafka
-       40212 QuorumPeerMain
+         44468 Kafka
+          
+         40212 QuorumPeerMain
  
-      
+   ...    
      
      
      
-     here is my shell script which is not confluent kafka if you test in your local machine no more one broker , partition and replica , one consumer
-     
-     create_topic.sh
+  here is my shell script which is not confluent kafka if you test in your local machine no more one broker , partition and replica , one consumer
+   ...  
+        create_topic.sh
      
         kafka-topic.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic "$1"
         
-     list_topic.sh
+        list_topic.sh
      
         kafka-topics.sh  --list --bootstrap-server localhost:9092
-        
-     
-     console-producer.sh
+            
+        console-producer.sh
         
         kafka-console-producer.sh --broker-list localhost:9092 --topic "$1"
-     
-     
-     console-consumer.sh
+         
+        console-consumer.sh
      
         kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic "$1" --from-beginning
-     
+   ...   
     
-    2. Install confluent kafka and zookeeper in your local docker
+### 2. Install confluent kafka and zookeeper in your local docker
      
        copy following docker-composer.yml 
      
@@ -253,21 +253,30 @@ SpringBoot microservice
      
  ## start docker kafka
  
-    in microservice-master project and open terminal from Intellij
+   in microservice-master project and open terminal from Intellij
     
-    docker ps
-    if find kafka and zookeeper process running in docker, using
+     docker ps
+   if find kafka and zookeeper process running in docker, using
     
     docker kill pid
     
-    to stop two of them
+   to stop two of them
     
-    then start it
+   then start it
     
     docker compose up -d
     
     
+## Sequence of Start Services     
+   
+   start eureka-nameing-server -> product-service -> inventory-services --> order-sevice --> notification-service --> eureka-client-api-getway
+   
+## Code Integrated testing
+
+  1. product-service
      
-     
+  
+  
+   
      
    
