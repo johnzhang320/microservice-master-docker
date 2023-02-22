@@ -378,18 +378,7 @@ SpringBoot microservice
     
     @Slf4j
     
-    public class OrderService {
-    
-      private final ModelMapper modelMapper;
-      
-      private final OrderRepository orderRepository;
-
-      private final InventoryProxy inventoryProxy;
-
-      private final KafkaTemplate<String, OrderEvent> kafkaTemplate;
-
-      private static final String PLACE_ORDER_TOPIC="place-order-topic";
-      public String placeOrder(OrderRequestDto orderRequestDto, boolean timeout) {
+     public Order placeOrder(OrderRequestDto orderRequestDto, boolean timeout) {
         Order order = new Order();
         order.setOrderNumber(UUID.randomUUID().toString());
         List<OrderLineItems> orderLineItemsList =orderRequestDto.getOrderLineItemsDtoList().stream()
@@ -404,7 +393,7 @@ SpringBoot microservice
                     } else {
                         if (inventoryResponseDto.getQuantity() < orderLineItemsDto.getQuantity()) {
                             throw new OrderException("Quantity of requested item: "+inventoryResponseDto.getProductName() 
-                               +" is not enough in inventory !");
+                            +" is not enough in inventory !");
                         }
                     }
                     Integer orderQuantity = orderLineItemsDto.getQuantity();
@@ -429,7 +418,8 @@ SpringBoot microservice
         order =  orderRepository.save(order);
         // send order event object to notification-service by KAFKA
         sendOrderEvent(order);
-        return "success";
+        
+        return order;
     }
 
 
