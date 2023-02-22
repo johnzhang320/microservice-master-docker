@@ -16,6 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
+
 import javax.transaction.Transactional;
 import java.util.List;
 import java.util.UUID;
@@ -64,6 +66,17 @@ public class OrderService {
                             throw new OrderException("Quantity of requested item: "+inventoryResponseDto.getProductName() +"  is not enough in inventory !");
                         }
                     }
+                    Integer orderQuantity = orderLineItemsDto.getQuantity();
+                    // queue will to do such subtract in inventory ,
+                    Integer inventoryRemainQuantity= inventoryResponseDto.getQuantity() - orderLineItemsDto.getQuantity();
+
+                    Long inventoryId =inventoryResponseDto.getId();
+
+                    // reduce the quantity from inventory
+                    // second parameter of inventoryProxy.updateInventory() is @RequestParam("quantity")
+                    // inventoryProxy.updateInventory(inventoryId,inventoryRemainQuantity);
+
+                    // inventory product information will be written to orderLineItemsDto
                     OrderLineItems orderLineItems = builderOrderLineItems(orderLineItemsDto,inventoryResponseDto);
 
                     return orderLineItems;
