@@ -369,6 +369,47 @@ SpringBoot microservice
 ### PlaceOrder code, we use feign interface directly call inventory-service two times 
 
 ...
+
+  
+      @FeignClient(name="inventory-services", path="/inventorys")
+      public interface InventoryProxy {
+          @GetMapping("/findBySkuCode/{sku-code}")
+          @ResponseStatus(HttpStatus.OK)
+          public boolean isInStock(@PathVariable("sku-code") String skuCode);
+
+          @GetMapping("/findById/{id}")
+          @ResponseStatus(HttpStatus.OK)
+          public InventoryResponseDto findInventoryById(@PathVariable("id") Long id) ;
+
+          @GetMapping("/findAll")
+          @ResponseStatus(HttpStatus.OK)
+          public List<InventoryResponseDto> findAllInventorys() ;
+
+          @PostMapping("/input")
+          @ResponseStatus(HttpStatus.CREATED)
+          public InventoryResponseDto inputInventory(@RequestBody InventoryRequestDto inventoryRequestDto);
+
+          @GetMapping("/inputByProdIdAndQty/{productId}")
+          @ResponseStatus(HttpStatus.CREATED)
+          public InventoryResponseDto inputInventoryByProductId(@PathVariable("productId") String productId,
+                                                                @RequestParam("quantity") Integer quantity);
+
+          @PostMapping("/inputInventoryByProductSearchDto/{quantity}")
+          @ResponseStatus(HttpStatus.CREATED)
+          public InventoryResponseDto inputInventoryByProductSearchDto(@RequestBody ProductSearchDto productSearchDto,
+                                                                       @PathVariable("quantity") Integer quantity
+          ) ;
+
+          @GetMapping("/findProdFromProductdb/{productId}")
+          @ResponseStatus(HttpStatus.OK)
+          public ProductResponseDto findProdFromProductdb(@PathVariable("productId") String productId);
+          
+
+...
+
+### Place Order Service
+    
+...
    
     @Service
     
@@ -463,3 +504,7 @@ SpringBoot microservice
     }
      
 ...   
+
+## Request quantity exceeds the quantity of Inventory
+
+![](images/)
