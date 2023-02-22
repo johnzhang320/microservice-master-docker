@@ -211,6 +211,7 @@ SpringBoot microservice
      
   here is my shell script which is not confluent kafka if you test in your local machine no more one broker , partition and replica , one consumer
    ...  
+   
         create_topic.sh
      
         kafka-topic.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic "$1"
@@ -273,11 +274,15 @@ SpringBoot microservice
    
 ## Code Integrated testing
 
-  1. Five services have been registered in eureka server, http:/localhost:8761
-  
-  ![](images/five-services-in-eureka)
+###  1. Five services have been registered in eureka server, http:/localhost:8761
 
-  2. product-service
+  in Server,  @EnableEurekaServer and avoid itself as Eureka Client, server.port=8761
+  
+  in Clients, @EnableEurekaClient and reqister eureka.client.serviceUrl.default-zone=http://localhost:8761/eureka in application.yml
+   
+  ![](images/five-services-in-eureka.png)
+
+  2. product-service -- API Get Way
      
   As below image shows product-service port is 8091 but in postman we use api-getway to route to each service, therefore we do not need to 
   remember each service port number because real world the port number and ip address could be change
@@ -286,7 +291,50 @@ SpringBoot microservice
     
   ![](images/create-product-using-api-getway-port-8000.png)
   
+  Api-getway route 
+  ...
   
+         @Bean
+         public RouteLocator getwayRouter(RouteLocatorBuilder builder) {
+            return builder.routes()
+                  .route(p->p.path("/get")
+                          .uri("http://httpbin.org"))
+                  .route(p->p
+                          .path("/products/**")
+                          .uri("lb://product-services"))
+                        
+  ...                       
+  
+  
+### 3. inventory-service -- Open Feign 
+   To create inventory reuse the product name, description and price which have been input in product-service, therefore create Feign Client
+   to call product-service by eureka registered name = "product-services" , using @FeignClient(name="product-services")
+  
+  ...
+      
+        @FeignClient(name="product-services")
+        public interface ProductProxy {
+            // adding product server.servlet.context-path before all post or get mapping
+            @PostMapping("/products/create")
+            @ResponseStatus(HttpStatus.CREATED)
+            public void createProduct(@RequestBody ProductRequestDto ProductRequestDto);
+
+            @GetMapping("/products/findAll")
+            @ResponseStatus(HttpStatus.OK)
+            public List<ProductResponseDto> getAllProducts();
+            
+  ...
+  
+  
+  ![](images/use-productId-quantity-create-inventory.png)
+  
+### 4. order-service --- check inventory 
+    before place order, check inventory productId by feign interface, post body only provide productId, quantity and final price, productName
+    description, skucode provided by inventory
+    
+    ![](images/place-an-order-succeed-by-productId.png)        
+    
+### 5.    
    
      
    
