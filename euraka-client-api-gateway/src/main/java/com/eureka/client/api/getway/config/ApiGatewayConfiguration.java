@@ -6,9 +6,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class ApiGetwayConfiguration {
+public class ApiGatewayConfiguration {
     @Bean
-    public RouteLocator getwayRouter(RouteLocatorBuilder builder) {
+    public RouteLocator gatewayRouter(RouteLocatorBuilder builder) {
         return builder.routes()
                 .route(p->p.path("/get")
                         .uri("http://httpbin.org"))
