@@ -273,8 +273,18 @@ SpringBoot microservice
    
 ## Code Integrated testing
 
-  1. product-service
+  1. Five services have been registered in eureka server, http:/localhost:8761
+  
+  ![](images/five-services-in-eureka)
+
+  2. product-service
      
+  As below image shows product-service port is 8091 but in postman we use api-getway to route to each service, therefore we do not need to 
+  remember each service port number because real world the port number and ip address could be change
+  we can copy paste the productId for following operation
+    
+    
+  ![](images/create-product-using-api-getway-port-8000.png)
   
   
    
