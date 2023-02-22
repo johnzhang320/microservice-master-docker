@@ -279,8 +279,10 @@ SpringBoot microservice
   in Server,  @EnableEurekaServer and avoid itself as Eureka Client, server.port=8761
   
   in Clients, @EnableEurekaClient and reqister eureka.client.serviceUrl.default-zone=http://localhost:8761/eureka in application.yml
-   
+ 
+  
   ![](images/five-services-in-eureka.png)
+  
 
   2. product-service -- API Get Way
      
