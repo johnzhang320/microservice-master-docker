@@ -1,4 +1,5 @@
 # microservice-master
+
 SpringBoot microservice 
 
 ## Environment. 
@@ -25,7 +26,7 @@ SpringBoot microservice
   
   MySQL 8.0.28
   
-  JDK 1.8 
+  JDK 17
   
   Rest API
   
