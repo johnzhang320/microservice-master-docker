@@ -552,7 +552,7 @@ SpringBoot microservice
 
   ![](images/quantity-exceed-inventory.png)
 
-### 8. Resilience4J timeout and Retry
+### 8. Resilience4J Circuit Breaker: "Retry and timeout"
  
    In application.yml of order-service we defined 5 seconds to timeout and retry 3 times , each time waiting 3 seconds
    
@@ -611,6 +611,13 @@ SpringBoot microservice
  
  ...
 
+  Call PlaceOrderTimeout
+  
+  ![](images/place-order-inventory-timeout.png)    
+  
+  Order Service retried 3 times and finally timeout, please notify 3 times of "No instance found...." and "Read Time out" at bottom
+  
+  ![](images/retry-annotation-and-fallback-method.png)    
   
   
   
