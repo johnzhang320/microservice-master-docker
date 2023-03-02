@@ -200,6 +200,8 @@ SpringBoot microservice
                you can see mysql image
 
        Step 2 dump your mysql databases and stop local mysql
+              
+             check if your local mysql home directory in $PATH of .bash_profile
 
              ~$ cd MySQLDb
 
@@ -250,7 +252,9 @@ SpringBoot microservice
    
 ### Dockerize mongodb and migrate dump data to docker   
 
-
+     Step 1 
+         ~$ docker pull mongodb
+     Step 2 
    
 ## Setup and configure Kafka producer/consumer 
    
