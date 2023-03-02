@@ -179,6 +179,79 @@ SpringBoot microservice
    
    order-services are similiar to inventory-services, no more description
    
+## Dockerize MySQL and Mongodb then migrate dump database file from local to docker 
+
+### Dockerize MySQL and migrate dump data to docker
+
+       Step 1  create docker image
+
+               Login your docker hub
+
+               ~$ docker login
+
+               Search MySQL in docker hub
+
+               pull mysql image 
+
+               ~$ docker pull mysql
+
+               ~$ docker image ls
+
+               you can see mysql image
+
+       Step 2 dump your mysql databases and stop local mysql
+
+             ~$ cd MySQLDb
+
+             ~$ mysqldump -u root -p order_services > order_services.sql
+
+             ~$ mysqldump -u root -p inventory_services > inventory_services.sql
+
+             answer password: mypassword
+
+             stop local mysql because code use unique port 3306
+
+             ~$ mysqladmin -u root -p shutdown
+
+       Step 3 run mysql in docker and create root password at meaning while
+
+             ~$ docker run -- name ms -p 3306:3306 -e MYSQL_ROOT_PASSWORD=mypassword
+
+       Step 4  Using mysql name: ms, got into mysql docker bash and create database
+
+             ~$ docker exec -it ms bash
+
+             bash-4.4# mysql -u root -p
+             password: mypassword
+
+             mysql>create database order_services;
+
+             mysql>create database inventory_services;
+
+             mysql>quit
+
+             bash-4.4# exit
+
+       Step 5 find mysql docker container id and import local data files
+       
+             ~$ docker images
+
+             052fcf9a74a9   mysql   "docker-entrypoint.s…"   17 hours ago   Up 17 hours   0.0.0.0:3306->3306/tcp, 33060/tcp  ms
+
+             then we run following command
+
+             ~$ cd MySQLDb
+
+             ~$ docker exec -i 052fcf9a74a9  mysql -uroot -pmypassword order_services < order_services.sql
+
+             ~$ docker exec -i 052fcf9a74a9  mysql -uroot -pmypassword inventory_services < inventory_services.sql
+   
+   In system ducker-compose.yml we use -volume to ensure data never lost even mysql docker container stop
+   
+### Dockerize mongodb and migrate dump data to docker   
+
+
+   
 ## Setup and configure Kafka producer/consumer 
    
 ### 1. Install kafka into Mac by download kafka_2.12-3.4.0.tgz from https://kafka.apache.org/downloads
