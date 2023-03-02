@@ -1,6 +1,55 @@
 ---
-version: '3'
+version: '3.0'
 services:
+  mysql-order:
+    container_name: mysql-order
+    image: mysql:8.0.28
+    volumes:
+      - ./mysql-order:/data/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: mypassword
+      MYSQL_DATABASE: order_services
+      MYSQL_USER: root
+      MYSQL_PASSWORD: mypassword
+    expose:
+      - "3306"
+    ports:
+      - "3306:3306"
+    command: -p 3306
+    restart: always
+
+  mysql-inventory:
+    container_name: mysql-inventory
+    image: mysql:8.0.28
+    volumes:
+      - ./mysql-inventory:/data/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: mypassword
+      MYSQL_DATABASE: inventory_services
+      MYSQL_USER: root
+      MYSQL_PASSWORD: mypassword
+    expose:
+      - "3306"
+    ports:
+      - "3306:3306"
+    command: -p 3306
+    restart: always
+
+  mongo-product:
+    container_name: mongo-product
+    image: mongo:4.4.18
+    environment:
+      - MONGO_INITDB_DATABASE: product_services
+      - MONGO_INITDB_ROOT_USERNAME: productsuper
+      - MONGO_INITDB_ROOT_PASSWORD: super123
+    restart: always
+    ports:
+      - "27017:27017"
+    expose:
+      - "27017"
+    volumes:
+      - ./mongo-data:/data/db
+
   zookeeper:
     image: confluentinc/cp-zookeeper:7.3.0
     container_name: zookeeper
