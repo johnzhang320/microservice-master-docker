@@ -238,7 +238,7 @@ SpringBoot microservice
        
              ~$ docker images
 
-             052fcf9a74a9   mysql   "docker-entrypoint.s…"   17 hours ago   Up 17 hours   0.0.0.0:3306->3306/tcp, 33060/tcp  ms
+             052fcf9a74a9 mysql "docker-entrypoint.s…"  17 hours ago Up 17 hours 0.0.0.0:3306->3306/tcp, 33060/tcp  ms
 
              then we run following command
 
@@ -250,11 +250,41 @@ SpringBoot microservice
    
    In system ducker-compose.yml we use -volume to ensure data never lost even mysql docker container stop
    
+             
+   
 ### Dockerize mongodb and migrate dump data to docker   
 
-     Step 1 
-         ~$ docker pull mongodb
-     Step 2 
+     Step 1 pull mongodb image
+            ~$ docker pull mongodb
+         
+     Step 2 Export product_services database
+     
+            We know mongodb atas provide mongodump tools can dump mongodb database(Document) or collection, however, the command running 
+            is messed up with Mac security , even security allow, mongodb version still does not allow and have to change mongodb community 
+            version, trouble with us
+
+            We can download studio 3T tool to make life easy
+
+            https://studio3t.com/download-thank-you/?OS=osx
+
+            we can use 30 days free trial. when we click on stadio 3T.app in Applications in Mac, sign up, then it gives you free trial code
+            go to Applications in MAC and click on stadio 3T.app again, provide the trial code, get in
+
+            we can create Connection follow
+
+            Click icon Connect on left top --> clieck 'New Connection' in diaglog --> in 'URI' field, type 
+
+            mongodb://mongoadmin:adminonly@localhost:27017/?authSource=admin
+         
+            then test connection
+            
+            
+    Step 3        
+
+    Step 4  Create Mongo Container in docker and setup the authentication for docker image
+           
+        
+        
    
 ## Setup and configure Kafka producer/consumer 
    
