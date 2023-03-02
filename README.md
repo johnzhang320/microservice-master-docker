@@ -20,6 +20,10 @@ SpringBoot microservice
   
   Spring Cloud API Getway
   
+  docker-compose.yml
+  
+  google jib to docker hub
+  
   kafka 3.4.0 or Confluent Kafka 
      
   Mongodb 4.4.18
