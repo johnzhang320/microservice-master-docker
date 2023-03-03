@@ -1,6 +1,39 @@
 # microservice-master
 
-SpringBoot microservice 
+ SpringBoot microservice master project, registered 5 services to Eureka Server beside load balancer, it help discovery. Implement
+ 
+ each services communicate each othe by Spring Open Feign Interfaces, which can discover registration from Eureka Server instead of 
+ 
+ each service IP and Port.  
+ 
+ End user accesses each service Endpoint by Spring Cloud API Gateway which discover the service registration from Eureka server
+ 
+ and route to user requested service. Also use Resilince4J circuit breaker to detect call service and downstream service timeout 
+ 
+ or break issue
+ 
+ Produce_Service is using mongodb database with authentication 
+ 
+ Inventory_Service and Order_Service are using MySQL database with authentication 
+ 
+ Order_Service and Notification_Service are Kafka Message Driven Producer and Consumer
+ 
+ Inventory input API check product API to ensure product name and productId when create inventory 
+ 
+ When Order_Service place order , check Inventory API to ensure product exist and got enough quantity otherwise throw 
+ 
+ OrderException which is handled by Spring Global Exception Handler
+ 
+ Two types of Databases are able to run in local disk and docker container, we gave detail installation and setup 
+ 
+ Especially describe all detail steps migrate Local mysql data and mongodb data to docker container
+ 
+ Instead of writing Dockfile for each modules under parent project, integrate Google library maven plugin in parent project pom.xml, 
+ 
+ run one command to build all docker images for all modules and deploy it either to docker hub or AWS ECR
+ 
+ We use docker-compose.yml to make all services and their databases and kafka running in docker
+ 
 
 ## Environment. 
 
@@ -272,19 +305,94 @@ SpringBoot microservice
 
             we can create Connection follow
 
-            Click icon Connect on left top --> clieck 'New Connection' in diaglog --> in 'URI' field, type 
+            Click icon "Connect" on left top --> clieck 'New Connection' in diaglog --> in 'URI' field, type 
 
             mongodb://mongoadmin:adminonly@localhost:27017/?authSource=admin
          
+            Naming this connection as "Admin_mongodb" 
+            
             then test connection
             
             
-    Step 3        
+    Step 3  Stop mongodb in Mac and Linux
+            
+            So far only way to kill mongod process
+            
+            find process Id
+            
+            ~$ pgrep mongod
+            
+            kill the process
+            
+            ~$ kill -9 process_id
+            
 
-    Step 4  Create Mongo Container in docker and setup the authentication for docker image
+    Step 4  Create Mongo Container in docker
            
+          check mongodb image repository name and TAG name and start mongodb image in docker and 
+          
+          ~$ docker images
+          
+          REPOSITORY    TAG             IMAGE_ID       CREATED        SIZE
+          mongo         4.4.18          f0bbeaaea8c3   4 weeks ago    438MB
+          
+          
+          ~$ docker run -d -p 27017:27017 --name mongodb2 mongo:4.4.18
+          
+          ~$ docker ps
+          CONTAINER ID   IMAGE           COMMAND                 REATED           STATUS          PORTS                       NAMES
+          4e961fb804b2   mongo:4.4.18   "docker-entrypoint.s…"   31 minutes ago   Up 31 minutes   0.0.0.0:27017->27017/tcp    mongodb2
+   
+    Step 5 Setup the authentication for docker image
+         (1) We use Stadio 3T to connect mongodb without authentication
+            
+            click icon "Connect" on left top --> click 'New Connection' in diaglog --> in 'URI' field, type 
+
+            mongodb://localhost:27017
+            
+            Naming this connection as "MongoNoAuth" 
+            
+            test connection successfully
         
+        (2) Click on icon "intelliShell" --> in "intelliShell MongodbNoAuth" tab window , copy-paste following --> Click Running
         
+            db.createUser(
+               {
+                 user: "mongoadmin",
+                 pwd: "adminonly",
+                 roles: [ { role: "userAdminAnyDatabase", db: "admin" },
+                          { role: "readWrite", db: "admin" }
+                        ]
+               })
+               
+        (3) click icon "Connect" on left top --> select "admin_mongodb" make connection with authentication --> Click on icon 
+        
+            "intelliShell" --> copy-pasted following
+            
+             Db.createUser(
+               {
+                  user: "productsuper",
+                  pwd: "super123",
+                 roles: [ { role: "readWrite", db: "product_services" } ]
+               })
+               
+    Step 4 create database "product_services" and collection by import product_service.json 
+    
+         (1) In "intelliShell MongodbNoAuth" tab window, run two command to create database
+         
+            use product_services
+
+            db.person.insert({name:"creater"})
+       
+       
+        (2)  click on "import" button --> ensure Json format-->press "Configure" button--> under "Select JSON sources to input",
+       
+         click on "+ add source" --> in file nagivation window, find "~/MySQLDbs/product_resources" directory click on product.json
+         
+         at load task ... schedular line most right side, click on "Run" icon , product will be import as
+         
+        now mongdb local json file load from local disk to docker
+       
    
 ## Setup and configure Kafka producer/consumer 
    
