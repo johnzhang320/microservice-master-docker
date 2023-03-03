@@ -504,7 +504,21 @@
     
     docker compose up -d
     
-    
+## Docker Integrate Registration
+   
+   We create parent project and 6 modules, in parent level we added the goodle jib plugin, it will build all module services and then
+   
+   deliver all services to Docker hub under my account:johnz148 by command 
+   
+   mvn clean compile jib:build
+   
+   ![](images/pom-xml-google-jib-plugin.png)
+   
+   then we can find five docker images have been created in docker hub
+   
+   ![](images/registered-five-services-in-docker-hub.png)
+   
+   
 ## Sequence of Start Services     
    
    start eureka-nameing-server -> product-service -> inventory-services --> order-sevice --> notification-service --> eureka-client-api-getway
