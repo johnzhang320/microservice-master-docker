@@ -213,7 +213,9 @@
    order-services are similiar to inventory-services, no more description
    
 ## Dockerize MySQL and Mongodb then migrate dump database file from local to docker 
-
+  
+  ![](images/docker-hub-find-mysql.png)
+  
 ### Dockerize MySQL and migrate dump data to docker
 
        Step 1  create docker image
@@ -392,7 +394,22 @@
          at load task ... schedular line most right side, click on "Run" icon , product will be import as
          
         now mongdb local json file load from local disk to docker
-       
+  
+## Stadio 3T operation screen shot
+
+  ![](images/mongo-auth-connection-uri.png)
+  
+  ![](images/mongo-export-database-steps.png)
+  
+  ![](images/mongo-dumped-collection-within-database.png)
+  
+  ![](images/mongo-create-user-change-admindb.png)
+  
+  ![](images/mongo-import-select-configure.png)
+  
+  ![](images/mongo-db-collections-result-analysis.png)
+ 
+
    
 ## Setup and configure Kafka producer/consumer 
    
