@@ -848,9 +848,11 @@
  
  ...
 
-  Call PlaceOrderTimeout
+ ### Call PlaceOrderTimeout, Resilience4J Retry and Circuit Breaker demo
   
   ![](images/place-order-inventory-timeout.png)    
+  
+  ![](images/retry-3-times-no-instance-finally-timeout-exception.png)
   
   Order Service retried 3 times and finally timeout, please notify 3 times of "No instance found...." and "Read Time out" at bottom
   
