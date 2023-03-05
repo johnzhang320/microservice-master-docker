@@ -155,7 +155,7 @@
 
    Then create username and password to access product_services
    
-     > Db.createUser(
+     > db.createUser(
        {
           user: "productsuper",
           pwd: "super123",
@@ -252,11 +252,11 @@
 
        Step 3 run mysql in docker and create root password at meaning while
 
-             ~$ docker run -- name ms -p 3306:3306 -e MYSQL_ROOT_PASSWORD=mypassword
+             ~$ docker run --name mysql-master -p 3306:3306 -e MYSQL_ROOT_PASSWORD=mypassword -d mysql:8.0.28
 
-       Step 4  Using mysql name: ms, got into mysql docker bash and create database
+       Step 4  Using mysql name: mysql-master, got into mysql docker bash and create database
 
-             ~$ docker exec -it ms bash
+             ~$ docker exec -it mysql-master bash
 
              bash-4.4# mysql -u root -p
              password: mypassword
@@ -514,11 +514,55 @@
    
    ![](images/pom-xml-google-jib-plugin.png)
    
-   then we can find five docker images have been created in docker hub
+   then we can find six docker images have been created in docker hub
    
    ![](images/registered-five-services-in-docker-hub.png)
    
+## start all six services in docker
+
+  Step 1 pull images from docker hub
+     docker login (use your account)
+
+     docker pull johnz148/eureka-naming-server:1.0-SNAPSHOT
    
+     docker pull johnz148/product-service:1.0-SNAPSHOT
+   
+     docker pull johnz148/inventory-service:1.0-SNAPSHOT
+   
+     docker pull johnz148/order-service:1.0-SNAPSHOT
+   
+     docker pull johnz148/euraka-client-api-geteway:1.0-SNAPSHOT
+   
+     docker pull johnz148/notification-service:1.0-SNAPSHOT
+   
+  Step 2 run in docker 
+   
+   docker run -d -p 8761:8761 --name eureka-naming-server johnz148/eureka-naming-server:1.0-SNAPSHOT
+   
+   docker run -d -p 8091:8091 --name product-service johnz148/product-service:1.0-SNAPSHOT
+   
+   docker run -d -p 8082:8082 --name inventory-service johnz148/inventory-service:1.0-SNAPSHOT
+   
+   docker run -d -p 8081:8081 --name order-service johnz148/order-service:1.0-SNAPSHOT
+   
+   docker run -d -p 8084:8084 --name notification-service johnz148/notification-service:1.0-SNAPSHOT
+   
+   docker run -d -p 8000:8000 --name euraka-client-api-geteway johnz148/euraka-client-api-geteway:1.0-SNAPSHOT
+   
+ Step 3 double check stopped container
+   
+   sometimes docker containers are created but do not start, we need know their names using
+   
+   docker container ps --all
+   
+   to find stopped container 
+   
+   docker container start product-service
+   
+   ![](images/
+ 
+   
+
 ## Sequence of Start Services     
    
    start eureka-nameing-server -> product-service -> inventory-services --> order-sevice --> notification-service --> eureka-client-api-getway
