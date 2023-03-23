@@ -271,7 +271,7 @@
 
        Step 5 find mysql docker container id and import local data files
        
-             ~$ docker images
+             ~$ docker ps
 
              052fcf9a74a9 mysql "docker-entrypoint.s…"  17 hours ago Up 17 hours 0.0.0.0:3306->3306/tcp, 33060/tcp  ms
 
