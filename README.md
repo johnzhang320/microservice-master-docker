@@ -536,6 +536,8 @@
      docker pull johnz148/notification-service:1.0-SNAPSHOT
    
   Step 2 run in docker 
+  
+   docker container rm -f eureka-naming-server product-service inventory-service order-service notification-service euraka-client-api-geteway
    
    docker run -d -p 8761:8761 --name eureka-naming-server johnz148/eureka-naming-server:1.0-SNAPSHOT
    
@@ -548,6 +550,7 @@
    docker run -d -p 8084:8084 --name notification-service johnz148/notification-service:1.0-SNAPSHOT
    
    docker run -d -p 8000:8000 --name euraka-client-api-geteway johnz148/euraka-client-api-geteway:1.0-SNAPSHOT
+     
    
  Step 3 double check stopped container
    
