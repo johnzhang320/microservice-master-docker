@@ -181,6 +181,10 @@
             <artifactId>spring-boot-starter-data-mongodb</artifactId>
         </dependency>
   
+  ##login as productsuper
+  
+   mongo --authenticationDatabase product_services -u productsuper -p super123
+  
   ## MySQL Authentication and configuration
       
      Download and Install MySQL , using the install tool set up and choose authenticated start root user 
