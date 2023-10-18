@@ -122,6 +122,10 @@
       start without access
       
        ~$ mongod --dbpath /usr/local/var/mongodb
+
+       (sometimes, mac does not allow above command to run because it is can not verify it is valid developer, then
+        do System Preference-->Security & Private--> Check "General" Tab --> Allow Application Download From--> Allow mongodb run any way)
+       
    
        ~$  mongo
       
