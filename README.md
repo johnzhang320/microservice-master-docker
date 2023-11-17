@@ -125,7 +125,11 @@
 
        (sometimes, mac does not allow above command to run because it is can not verify it is valid developer, then
         do System Preference-->Security & Private--> Check "General" Tab --> Allow Application Download From--> Allow mongodb run any way)
-       
+       (sometimes,/usr/local/var/mongodb/WiredTiger.wt file may be corrupted , better way is create new folder like /usr/local/var/mongoNew
+        run
+           ~$ mongod --dbpath /usr/local/var/mongoNew
+        will solve the problem
+      )
    
        ~$  mongo
       
